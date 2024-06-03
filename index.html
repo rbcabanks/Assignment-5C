@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<title>Assignment 5a</title>
+</head>
+<style>
+	html,
+	body {
+		height: 100%;
+		margin: 0;
+	}
+	.button{
+		position: absolute;
+		font-size: 20px;
+		background-color: #095181;
+		padding:5px;
+		color: white;
+		display: block;
+		z-index: 99;
+		right: 15.3%;
+		top: 90%;
+    }
+	.button1{
+		right: 6%;
+	}
+	.button:active {
+		background-color: #3e8e41;
+		box-shadow: 0 5px #666;
+		transform: translateY(4px);
+	}
+	.button:hover {
+		background-color: #042135;
+
+	}
+	#c {
+		width: 100%;
+		height: 100%;
+		display: block;
+	}
+</style>
+
+<body>
+	<button id="start" class="button">Start Drone</button>
+	<button id="stop" class="button button1">Stop Drone</button>
+	<canvas id="c"></canvas>
+</body>
+<script type="importmap">{
+        "imports": {
+            "three": "https://threejs.org/build/three.module.js",
+            "three/addons/": "https://threejs.org/examples/jsm/"
+        }
+        }
+    </script>
+<script type="module">
+	import * as THREE from 'three';
+	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+	import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+	import { Water } from 'three/addons/objects/Water.js';
+	import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+	import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
+
+		//used this resource for button css https://stackoverflow.com/questions/47297794/how-to-overlay-html-text-buttons-on-three-js
+		//also got other css stuff from "https://www.w3schools.com/css/css3_buttons.asp"
+		
+	function main() {
+		const canvas = document.querySelector('#c');
+		//const renderer = new THREE.WebGLRenderer( { antialias: true, canvas } );
+		// want to use skybox 
+		const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
+		let dHeight=5;
+
+		const fov = 100;
+		const aspect = window.innerWidth / window.innerHeight; // the canvas default
+		const near = 1;
+		const far = 20000;
+		const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+		camera.position.set(-40, 50, 40);
+		// using example from "cameras" as a basic guide
+		function updateCamera() {
+			camera.updateProjectionMatrix();
+		}
+
+		const controls = new OrbitControls(camera, canvas);
+		controls.target.set(-5, 10, 0);
+		// got help with formatting the camera above the water from this example"https://github.com/mrdoob/three.js/blob/dev/examples/webgl_shaders_ocean.html" 
+		controls.maxPolarAngle = Math.PI * 0.495;
+		//controls.minDistance = 40.0;
+		controls.maxDistance = 200;
+		controls.update();
+
+
+		const scene = new THREE.Scene();
+		const waterGeometry = new THREE.PlaneGeometry(20000, 20000);
+		let water;
+
+		//had to tweak it to be how I wanted, but got a lot of help from this source code https://threejs.org/examples/webgl_shaders_ocean.html
+		water = new Water(
+			waterGeometry,
+			{
+				textureWidth: 10000,
+				textureHeight: 10000,
+				waterNormals: new THREE.TextureLoader().load('waternormals.jpg', function (texture) {
+
+					texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+
+				}),
+				
+				//sunDirection: new THREE.Vector3(),
+				sunColor: 0x8B6700,
+				waterColor: 0x000000,
+				distortionScale: 3.7,
+				fog: scene.fog !== undefined
+			}
+		);
+
+		water.rotation.x = - Math.PI / 2;
+		scene.add(water);
+
+		//loading in a 3d scenery (specificaly a sky box)
+		{
+			const loader = new THREE.CubeTextureLoader();
+			const texture = loader.load([
+				'cubemap/pano_r.jpg', //pos-x
+				'cubemap/pano_l.jpg', //neg-x
+
+				'cubemap/pano_u.jpg', //pos-y
+				'cubemap/pano_d.jpg', //neg-y
+
+				'cubemap/pano_f.jpg', //pos-z
+				'cubemap/pano_b.jpg', //neg-z
+				//bfrl 
+				//sourced from https://www.utah3d.net/utah-travel/utah-waterways/starry-lake.html
+			]);
+			scene.background = texture;
+		}
+
+		const object1=[];
+		{// drone obj and mtl. Got from this source https://www.cgtrader.com/items/2480872/download-page
+			const mtlLoader = new MTLLoader();
+			mtlLoader.load('drone.mtl', (mtl) => {
+				mtl.preload();
+				const objLoader = new OBJLoader();
+				objLoader.setMaterials(mtl);
+				objLoader.load('drone.obj', (root) => {
+					root.position.y = dHeight;
+					root.position.x = -5;
+					root.position.z = -10;
+					root.scale.set(25, 25, 25)
+					//object1=root;
+					scene.add(root);
+					object1.push(root);
+				});
+
+			});
+		}
+		
+		// the 20+ cubes or other shapes
+		// here are 12
+		let cube,cube1,cube2,cube3,cube4,cube5,cube6,cube7,cube8,cube9,cube10,cube11;
+			//creating propellers 
+			{
+				const cubeSize = .5;
+				const cubeGeo = new THREE.BoxGeometry( cubeSize*15, cubeSize, cubeSize );
+				const cubeMat = new THREE.MeshPhongMaterial( { color: '#000000' } );
+				cube = new THREE.Mesh( cubeGeo, cubeMat );
+				cube1 = new THREE.Mesh( cubeGeo, cubeMat );
+				cube2 = new THREE.Mesh( cubeGeo, cubeMat );
+				cube3 = new THREE.Mesh( cubeGeo, cubeMat );
+				cube4 = new THREE.Mesh( cubeGeo, cubeMat );				
+				cube5 = new THREE.Mesh( cubeGeo, cubeMat );
+				cube6 = new THREE.Mesh( cubeGeo, cubeMat );
+				cube7 = new THREE.Mesh( cubeGeo, cubeMat );
+				cube8 = new THREE.Mesh( cubeGeo, cubeMat );				
+				cube9 = new THREE.Mesh( cubeGeo, cubeMat );
+				cube10 = new THREE.Mesh( cubeGeo, cubeMat );
+				cube11= new THREE.Mesh( cubeGeo, cubeMat );
+
+				
+				cube.position.set(4.6, dHeight+36, -3.5 );
+				cube1.position.set(-14.4, dHeight+36, -3.5 );
+				cube2.position.set(-14.4, dHeight+36, -17.4 );
+				cube3.position.set(4.6, dHeight+36, -17.4 );
+
+				cube4.rotation.y=45;
+				cube5.rotation.y=45;
+				cube6.rotation.y=45;
+				cube7.rotation.y=45;
+				cube4.position.set(4.6, dHeight+36, -3.5 );
+				cube5.position.set(-14.4, dHeight+36, -3.5 );
+				cube6.position.set(-14.4, dHeight+36, -17.4 );
+				cube7.position.set(4.6, dHeight+36, -17.4 );
+
+				cube8.rotation.y=90;
+				cube9.rotation.y=90;
+				cube10.rotation.y=90;
+				cube11.rotation.y=90;
+				cube8.position.set(4.6, dHeight+36, -3.5 );
+				cube9.position.set(-14.4, dHeight+36, -3.5 );
+				cube10.position.set(-14.4, dHeight+36, -17.4 );
+				cube11.position.set(4.6, dHeight+36, -17.4 );
+
+				//cube.rotation.x = 13;
+				scene.add( cube );
+				scene.add( cube1 );
+				scene.add( cube2 );
+				scene.add( cube3 );
+				scene.add( cube4 );
+				scene.add( cube5 );
+				scene.add( cube6 );
+				scene.add( cube7 );
+				scene.add( cube8 );
+				scene.add( cube9 );
+				scene.add( cube10 );
+				scene.add( cube11 );
+			}
+			// creating the rotating camera
+			//13 and 14
+			let cameraBox,cameraBox2;
+			const spheres = []; 
+			{
+
+				//added texture to the camera sphere
+				let mat;
+				const sphereGeo = new THREE.SphereGeometry(.2, 32, 16 );
+				const loader = new THREE.TextureLoader();
+				loader.load('Camera.png', (texture) => {
+					texture.colorSpace = THREE.SRGBColorSpace;
+					const material = new THREE.MeshBasicMaterial({
+						map: texture,
+						});
+					cameraBox2 = new THREE.Mesh(sphereGeo, material);
+					cameraBox2.position.set(-5.1, dHeight+34.8, -3.4 );
+					scene.add(cameraBox2);
+					spheres.push(cameraBox2);
+
+				});
+				const cubeSize = 1.2;
+				const cubeGeo = new THREE.BoxGeometry( cubeSize, cubeSize, cubeSize );
+				const cubeMat = new THREE.MeshPhongMaterial( { color: '#000000' } );
+				//const sphere = new THREE.MeshPhongMaterial(mat);
+				cameraBox = new THREE.Mesh( cubeGeo, cubeMat );
+				//cameraBox2 = new THREE.Mesh( sphereGeo, sphere );
+				cameraBox.position.set(-5.1, dHeight+34.8, -4 );
+				scene.add(cameraBox);
+				//scene.add(cameraBox2);
+
+			}
+
+			//added buoys 
+			// shapes 15-20
+			let buoy1,buoy2,buoy3,buoy4,buoy5;
+			{
+				const sphereGeo = new THREE.SphereGeometry(6, 32, 16 );
+				const sphere = new THREE.MeshPhongMaterial( { color: '#e3150e'});
+				buoy1 = new THREE.Mesh( sphereGeo, sphere );
+				buoy2 = new THREE.Mesh( sphereGeo, sphere );
+				buoy3 = new THREE.Mesh( sphereGeo, sphere );
+				buoy4 = new THREE.Mesh( sphereGeo, sphere );
+				buoy5 = new THREE.Mesh( sphereGeo, sphere );
+				buoy1.position.set(400, 400, -3.4 );
+				buoy2.position.set(400, 400, 300);
+				buoy3.position.set(400, 400, -300 );
+				buoy4.position.set(400, 400, -700);
+				buoy5.position.set(400, 400, 600 );
+				scene.add(buoy1);
+				scene.add(buoy2);
+				scene.add(buoy3);
+				scene.add(buoy4);
+				scene.add(buoy5);
+
+			}
+
+
+
+		//lighting
+		{
+
+			const color = 0xffeca1;
+			const intensity = 3;
+			//light 1
+			const light = new THREE.DirectionalLight(color, intensity);
+			const light2 = new THREE.DirectionalLight(0x008080, 3);
+
+			//light 2
+			const alight = new THREE.AmbientLight(0x101647, .01);
+			//light 3
+			const hlight = new THREE.HemisphereLight(0xB1E1FF, 0x101647, .01);
+			
+			scene.add(alight);
+			scene.add(light2);
+			scene.add(hlight);
+			light.position.set(180, 10, 0);
+			light2.position.set(-170, 5, -600);
+			light2.target.position.set(-5, 4, 10);
+			light.target.position.set(-5, 4, 10);
+			scene.add(light);
+			scene.add(light.target);
+
+		}
+
+		function resizeRendererToDisplaySize(renderer) {
+
+			const canvas = renderer.domElement;
+			const width = canvas.clientWidth;
+			const height = canvas.clientHeight;
+			const needResize = canvas.width !== width || canvas.height !== height;
+			if (needResize) {
+
+				renderer.setSize(width, height, false);
+
+			}
+
+			return needResize;
+
+		}
+		function animationOfDrone(varMove){
+			// the only way I could get this to work -> to move the camera
+			//let varMove= -.1;
+			spheres.forEach( ( cameraBox2, ndx ) => {
+				cameraBox2.rotation.y += 0.01;
+				cameraBox2.position.x += varMove;
+				cameraBox2.position.z += varMove*2.5;
+			});
+			// moves the drone
+			object1.forEach( ( root, ndx ) => {
+				root.position.x += varMove;
+				root.position.z += varMove*2.5;
+				controls.target.set(root.position.x, root.position.y, root.position.z);
+				controls.update();
+			});
+
+			cube.position.x += varMove;
+			cube.position.z += varMove*2.5;
+
+			cube1.position.x += varMove;
+			cube1.position.z += varMove*2.5;
+
+			cube2.position.x += varMove;
+			cube2.position.z += varMove*2.5;
+
+			cube3.position.x += varMove;
+			cube3.position.z += varMove*2.5;
+
+			cube4.position.x += varMove;			
+			cube4.position.z += varMove*2.5;
+
+			cube5.position.x += varMove;
+			cube5.position.z += varMove*2.5;
+
+			cube6.position.x += varMove;
+			cube6.position.z += varMove*2.5;
+
+			cube7.position.x += varMove;
+			cube7.position.z += varMove*2.5;
+
+			cube8.position.x += varMove;			
+			cube8.position.z += varMove*2.5;
+
+			cube9.position.x += varMove;			
+			cube9.position.z += varMove*2.5;
+
+			cube10.position.x += varMove;
+			cube10.position.z += varMove*2.5;
+
+			cube11.position.x += varMove;
+			cube11.position.z += varMove*2.5;
+
+			cameraBox.position.x += varMove;
+			cameraBox.position.z += varMove*2.5
+
+			dHeight+=varMove;
+
+		}
+		let startOn=0;
+		document.getElementById('start').onclick = function () {startOn=1;};
+		document.getElementById('stop').onclick = function () {startOn=0;};
+
+		function render() {
+
+			
+			if (resizeRendererToDisplaySize(renderer)) {
+
+				const canvas = renderer.domElement;
+				camera.aspect = canvas.clientWidth / canvas.clientHeight;
+				camera.updateProjectionMatrix();
+
+			}
+			
+			//makes water move.. got help from this example https://github.com/mrdoob/three.js/blob/dev/examples/webgl_shaders_ocean.html
+			water.material.uniforms[ 'time' ].value += 1.0 / 60.0;
+			
+			//propeller animations (to spin)
+			cube.rotation.y += 0.4;
+			cube1.rotation.y += 0.4;
+			cube2.rotation.y += 0.4;
+			cube3.rotation.y += 0.4;
+			cube4.rotation.y += 0.4;
+			cube5.rotation.y += 0.4;
+			cube6.rotation.y += 0.4;
+			cube7.rotation.y += 0.4;
+			cube8.rotation.y += 0.4;
+			cube9.rotation.y += 0.4;
+			cube10.rotation.y += 0.4;
+			cube11.rotation.y += 0.4;
+			cameraBox.rotation.y += 0.01;
+			
+			//animating moving the drone 
+			if(startOn==1){
+				animationOfDrone(-.1);
+			}
+			if(startOn==0){
+				animationOfDrone(0);
+			}
+			// got this idea from this example https://github.com/mrdoob/three.js/blob/dev/examples/webgl_shaders_ocean.html
+			const time = performance.now() * 0.001;
+
+			buoy1.position.y = Math.sin( time ) * 2;
+			buoy1.rotation.x = time * 0.5;
+			buoy1.rotation.z = time * 0.51;
+
+			buoy2.position.y = Math.sin( time ) * 2;
+			buoy2.rotation.x = time * 0.4;
+			buoy2.rotation.z = time * 0.41;
+
+			buoy3.position.y = Math.sin( time ) * 2;
+			buoy3.rotation.x = time * 0.3;
+			buoy3.rotation.z = time * 0.31;
+
+			buoy4.position.y = Math.sin( time ) * 2;
+			buoy4.rotation.x = time * 0.5;
+			buoy4.rotation.z = time * 0.51;
+
+			buoy4.position.y = Math.sin( time ) * 2;
+			buoy4.rotation.x = time * 0.6;
+			buoy4.rotation.z = time * 0.61;
+
+			buoy5.position.y = Math.sin( time ) * 2;
+			buoy5.rotation.x = time * 0.4;
+			buoy5.rotation.z = time * 0.51;
+
+			renderer.render(scene, camera);
+			requestAnimationFrame(render);
+		}
+		requestAnimationFrame(render);
+	}
+
+	main();
+</script>
