@@ -20,11 +20,14 @@
 		color: white;
 		display: block;
 		z-index: 99;
-		right: 15.3%;
+		right: 18%;
 		top: 90%;
     }
 	.button1{
 		right: 6%;
+	}
+	.button2{
+		right: 30%;
 	}
 	.button:active {
 		background-color: #3e8e41;
@@ -42,9 +45,10 @@
 	}
 </style>
 
-<body>
-	<button id="start" class="button">Start Drone</button>
-	<button id="stop" class="button button1">Stop Drone</button>
+<body> 
+	<button id="3rd" class="button" > 3rd Person View</button>
+	<button id="1st" class="button button1" >1st Person View</button>
+	<button id="2nd" class="button button2" >Freeze Camera</button>
 	<canvas id="c"></canvas>
 </body>
 <script type="importmap">{
@@ -61,11 +65,20 @@
 	import { Water } from 'three/addons/objects/Water.js';
 	import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 	import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
+	import { FirstPersonControls } from 'three/addons/controls/FirstPersonControls.js';
+
 
 		//used this resource for button css https://stackoverflow.com/questions/47297794/how-to-overlay-html-text-buttons-on-three-js
 		//also got other css stuff from "https://www.w3schools.com/css/css3_buttons.asp"
 		
 	function main() {
+		let firstPerson=false;
+		let freeze=1;
+		document.getElementById('3rd').onclick = function () {firstPerson=false;};
+		document.getElementById('1st').onclick = function () {firstPerson=true;};
+		document.getElementById('2nd').onclick = function () {freeze=freeze*-1;};
+
+
 		const canvas = document.querySelector('#c');
 		//const renderer = new THREE.WebGLRenderer( { antialias: true, canvas } );
 		// want to use skybox 
@@ -77,37 +90,50 @@
 		const near = 1;
 		const far = 20000;
 		const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-		camera.position.set(-40, 50, 40);
+		//camera.position.set(-40, 50, 40);
+		camera.position.set(-5, 55, 60);
 		// using example from "cameras" as a basic guide
 		function updateCamera() {
 			camera.updateProjectionMatrix();
 		}
+		
+		let controls;
+		
+		if(firstPerson==false){
+			controls=new OrbitControls(camera, canvas);
+			controls.target.set(-5, 60, 0);
+			// got help with formatting the camera above the water from this example"https://github.com/mrdoob/three.js/blob/dev/examples/webgl_shaders_ocean.html" 
+			controls.maxPolarAngle = Math.PI * 0.495;
+			//controls.minDistance = 40.0;
+			console.log("here");
+			controls.maxDistance = 100;
+			controls.update();
+		}
+		else{
+			// got this idea from this example https://github.com/mrdoob/three.js/blob/master/examples/webgl_geometry_terrain.html
+			controls= new FirstPersonControls(camera, renderer.domElement );
+			controls.movementSpeed = 100;
+			controls.lookSpeed = 0.05;
+		}
 
-		const controls = new OrbitControls(camera, canvas);
-		controls.target.set(-5, 10, 0);
-		// got help with formatting the camera above the water from this example"https://github.com/mrdoob/three.js/blob/dev/examples/webgl_shaders_ocean.html" 
-		controls.maxPolarAngle = Math.PI * 0.495;
-		//controls.minDistance = 40.0;
-		controls.maxDistance = 200;
-		controls.update();
-
+		const clock = new THREE.Clock();
 
 		const scene = new THREE.Scene();
-		const waterGeometry = new THREE.PlaneGeometry(20000, 20000);
+		const waterGeometry = new THREE.PlaneGeometry(16000, 16000);
 		let water;
-
+		scene.fog = new THREE.FogExp2( 0x062645, 0.0006 );
 		//had to tweak it to be how I wanted, but got a lot of help from this source code https://threejs.org/examples/webgl_shaders_ocean.html
 		water = new Water(
 			waterGeometry,
 			{
-				textureWidth: 10000,
-				textureHeight: 10000,
+				position:0,
+				textureWidth: 16000,
+				textureHeight: 16000,
 				waterNormals: new THREE.TextureLoader().load('waternormals.jpg', function (texture) {
 
 					texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
 
 				}),
-				
 				//sunDirection: new THREE.Vector3(),
 				sunColor: 0x8B6700,
 				waterColor: 0x000000,
@@ -137,6 +163,8 @@
 			scene.background = texture;
 		}
 
+
+
 		const object1=[];
 		{// drone obj and mtl. Got from this source https://www.cgtrader.com/items/2480872/download-page
 			const mtlLoader = new MTLLoader();
@@ -148,15 +176,18 @@
 					root.position.y = dHeight;
 					root.position.x = -5;
 					root.position.z = -10;
-					root.scale.set(25, 25, 25)
-					//object1=root;
+					root.scale.set(25, 25, 25);
+					//root.rotation.y=(-.6);
+
 					scene.add(root);
+					
+
 					object1.push(root);
 				});
 
 			});
 		}
-		
+
 		// the 20+ cubes or other shapes
 		// here are 12
 		let cube,cube1,cube2,cube3,cube4,cube5,cube6,cube7,cube8,cube9,cube10,cube11;
@@ -183,7 +214,6 @@
 				cube1.position.set(-14.4, dHeight+36, -3.5 );
 				cube2.position.set(-14.4, dHeight+36, -17.4 );
 				cube3.position.set(4.6, dHeight+36, -17.4 );
-
 				cube4.rotation.y=45;
 				cube5.rotation.y=45;
 				cube6.rotation.y=45;
@@ -221,7 +251,6 @@
 			let cameraBox,cameraBox2;
 			const spheres = []; 
 			{
-
 				//added texture to the camera sphere
 				let mat;
 				const sphereGeo = new THREE.SphereGeometry(.2, 32, 16 );
@@ -316,7 +345,14 @@
 			return needResize;
 
 		}
+		var allMoveX=0;
+		var allMoveY=0;
+		var allMoveZ=2.5;
+		var rotateX=0;
+
+
 		function animationOfDrone(varMove){
+
 			// the only way I could get this to work -> to move the camera
 			//let varMove= -.1;
 			spheres.forEach( ( cameraBox2, ndx ) => {
@@ -326,69 +362,123 @@
 			});
 			// moves the drone
 			object1.forEach( ( root, ndx ) => {
-				root.position.x += varMove;
-				root.position.z += varMove*2.5;
-				controls.target.set(root.position.x, root.position.y, root.position.z);
-				controls.update();
+				root.position.x += varMove*allMoveX;
+				root.position.z += varMove*allMoveZ;
+				
+				
+				if(firstPerson==false){
+					if(freeze==1){
+						controls.target.set(root.position.x, root.position.y, root.position.z);
+						controls.update();
+					}
+				}
+				else{
+					controls = new FirstPersonControls(camera, renderer.domElement );
+					controls.movementSpeed = 100;
+					controls.lookSpeed = 0.05;
+				}
 			});
 
-			cube.position.x += varMove;
-			cube.position.z += varMove*2.5;
+			//waterGeometry.translate(0,0,varMove/2.5);
+			//waterGeometry.translate(0,-3*varMove,varMove/3);
 
-			cube1.position.x += varMove;
-			cube1.position.z += varMove*2.5;
+			cube.position.x += varMove*allMoveX;
+			cube.position.z += varMove*allMoveZ;
 
-			cube2.position.x += varMove;
-			cube2.position.z += varMove*2.5;
+			cube1.position.x += varMove*allMoveX;
+			cube1.position.z += varMove*allMoveZ;
 
-			cube3.position.x += varMove;
-			cube3.position.z += varMove*2.5;
+			cube2.position.x += varMove*allMoveX;
+			cube2.position.z += varMove*allMoveZ;
 
-			cube4.position.x += varMove;			
-			cube4.position.z += varMove*2.5;
+			cube3.position.x += varMove*allMoveX;
+			cube3.position.z += varMove*allMoveZ;
 
-			cube5.position.x += varMove;
-			cube5.position.z += varMove*2.5;
+			cube4.position.x += varMove*allMoveX;			
+			cube4.position.z += varMove*allMoveZ;
 
-			cube6.position.x += varMove;
-			cube6.position.z += varMove*2.5;
+			cube5.position.x += varMove*allMoveX;
+			cube5.position.z += varMove*allMoveZ;
 
-			cube7.position.x += varMove;
-			cube7.position.z += varMove*2.5;
+			cube6.position.x += varMove*allMoveX;
+			cube6.position.z += varMove*allMoveZ;
 
-			cube8.position.x += varMove;			
-			cube8.position.z += varMove*2.5;
+			cube7.position.x += varMove*allMoveX;
+			cube7.position.z += varMove*allMoveZ;
 
-			cube9.position.x += varMove;			
-			cube9.position.z += varMove*2.5;
+			cube8.position.x += varMove*allMoveX;			
+			cube8.position.z += varMove*allMoveZ;
 
-			cube10.position.x += varMove;
-			cube10.position.z += varMove*2.5;
+			cube9.position.x += varMove*allMoveX;			
+			cube9.position.z += varMove*allMoveZ;
 
-			cube11.position.x += varMove;
-			cube11.position.z += varMove*2.5;
+			cube10.position.x += varMove*allMoveX;
+			cube10.position.z += varMove*allMoveZ;
 
-			cameraBox.position.x += varMove;
-			cameraBox.position.z += varMove*2.5
+			cube11.position.x += varMove*allMoveX;
+			cube11.position.z += varMove*allMoveZ;
+
+			cameraBox.position.x += varMove*allMoveX;
+			cameraBox.position.z += varMove*allMoveZ;
 
 			dHeight+=varMove;
 
 		}
 		let startOn=0;
-		document.getElementById('start').onclick = function () {startOn=1;};
-		document.getElementById('stop').onclick = function () {startOn=0;};
+		let lClick=false;
+		let rClick=false;
+
+		function handleKeyDown(event) {
+			if (event.keyCode === 87) { //"w"
+				startOn=1;
+			}
+			if (event.keyCode === 83) { //"s"
+				allMoveZ=-2.5;
+				startOn=1;
+			}
+			if (event.keyCode === 65) { //"a"
+				allMoveX=2.5;
+				rotateX=10;
+				startOn=1;
+				lClick=true;
+			}
+			if (event.keyCode === 68) { //"d"
+				allMoveX=-2.5;
+				rotateX=-10;
+				startOn=1;
+				rClick=true;
+			}
+		}
+
+		function handleKeyUp(event) {
+			if (event.keyCode === 87) { //"w"
+				startOn=0;
+			}
+			if (event.keyCode === 83) { //"s"
+				startOn=0;
+			}
+			if (event.keyCode === 65) { //"a"
+				allMoveX=0;
+				startOn=0;
+				lClick=false;
+			}
+			if (event.keyCode === 68) { //"d"
+				allMoveX=0;
+				startOn=0;
+				rClick=false;
+			}
+		}
+
 
 		function render() {
-
-			
 			if (resizeRendererToDisplaySize(renderer)) {
 
 				const canvas = renderer.domElement;
 				camera.aspect = canvas.clientWidth / canvas.clientHeight;
 				camera.updateProjectionMatrix();
 
+
 			}
-			
 			//makes water move.. got help from this example https://github.com/mrdoob/three.js/blob/dev/examples/webgl_shaders_ocean.html
 			water.material.uniforms[ 'time' ].value += 1.0 / 60.0;
 			
@@ -407,9 +497,13 @@
 			cube11.rotation.y += 0.4;
 			cameraBox.rotation.y += 0.01;
 			
+			if(firstPerson==false){
+				window.addEventListener('keydown', handleKeyDown, false);
+				window.addEventListener('keyup', handleKeyUp, false);
+			}
 			//animating moving the drone 
 			if(startOn==1){
-				animationOfDrone(-.1);
+				animationOfDrone(-1);
 			}
 			if(startOn==0){
 				animationOfDrone(0);
@@ -443,9 +537,13 @@
 
 			renderer.render(scene, camera);
 			requestAnimationFrame(render);
+			
+			if(firstPerson==true){
+				controls.update(clock.getDelta());
+			}
+
 		}
 		requestAnimationFrame(render);
 	}
-
 	main();
 </script>
