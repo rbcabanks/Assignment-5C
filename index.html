@@ -12,6 +12,7 @@
 		height: 100%;
 		margin: 0;
 	}
+	
 	.button{
 		position: absolute;
 		font-size: 20px;
@@ -46,9 +47,9 @@
 </style>
 
 <body> 
-	<button id="3rd" class="button" > 3rd Person View</button>
-	<button id="1st" class="button button1" >1st Person View</button>
-	<button id="2nd" class="button button2" >Freeze Camera</button>
+	<button id="3rd" class="button button" > Follow Drone</button>
+	<!--<button id="1st" class="button button1" >1st Person View</button>-->
+	<button id="2nd" class="button button1" >Fly Alone</button>
 	<canvas id="c"></canvas>
 </body>
 <script type="importmap">{
@@ -66,6 +67,9 @@
 	import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 	import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
 	import { FirstPersonControls } from 'three/addons/controls/FirstPersonControls.js';
+	//import { TransformControls } from 'three/addons/controls/TransformControls.js';
+	import { FlyControls } from 'three/addons/controls/FlyControls.js';
+
 
 
 		//used this resource for button css https://stackoverflow.com/questions/47297794/how-to-overlay-html-text-buttons-on-three-js
@@ -75,7 +79,7 @@
 		let firstPerson=false;
 		let freeze=1;
 		document.getElementById('3rd').onclick = function () {firstPerson=false;};
-		document.getElementById('1st').onclick = function () {firstPerson=true;};
+		//document.getElementById('1st').onclick = function () {firstPerson=true;};
 		document.getElementById('2nd').onclick = function () {freeze=freeze*-1;};
 
 
@@ -101,12 +105,12 @@
 		
 		if(firstPerson==false){
 			controls=new OrbitControls(camera, canvas);
-			controls.target.set(-5, 60, 0);
+			controls.target.set(-5, 55, 60);
 			// got help with formatting the camera above the water from this example"https://github.com/mrdoob/three.js/blob/dev/examples/webgl_shaders_ocean.html" 
 			controls.maxPolarAngle = Math.PI * 0.495;
 			//controls.minDistance = 40.0;
 			console.log("here");
-			controls.maxDistance = 100;
+			controls.maxDistance = 150;
 			controls.update();
 		}
 		else{
@@ -165,6 +169,12 @@
 
 
 
+		// Create the group -> got idea from this article https://medium.com/@gianluca.lomarco/three-js-object-transforms-74bf439e9e38
+		const group = new THREE.Group();
+
+		/*let control = new TransformControls( camera, renderer.domElement );
+		control.addEventListener( 'change', render );*/
+
 		const object1=[];
 		{// drone obj and mtl. Got from this source https://www.cgtrader.com/items/2480872/download-page
 			const mtlLoader = new MTLLoader();
@@ -178,10 +188,8 @@
 					root.position.z = -10;
 					root.scale.set(25, 25, 25);
 					//root.rotation.y=(-.6);
-
-					scene.add(root);
-					
-
+					group.add(root);
+					//scene.add(root);
 					object1.push(root);
 				});
 
@@ -233,7 +241,8 @@
 				cube11.position.set(4.6, dHeight+36, -17.4 );
 
 				//cube.rotation.x = 13;
-				scene.add( cube );
+				
+				/*scene.add( cube );
 				scene.add( cube1 );
 				scene.add( cube2 );
 				scene.add( cube3 );
@@ -244,7 +253,20 @@
 				scene.add( cube8 );
 				scene.add( cube9 );
 				scene.add( cube10 );
-				scene.add( cube11 );
+				scene.add( cube11 );*/
+
+				group.add( cube );
+				group.add( cube1 );
+				group.add( cube2 );
+				group.add( cube3 );
+				group.add( cube4 );
+				group.add( cube5 );
+				group.add( cube6 );
+				group.add( cube7 );
+				group.add( cube8 );
+				group.add( cube9 );
+				group.add( cube10 );
+				group.add( cube11 );
 			}
 			// creating the rotating camera
 			//13 and 14
@@ -262,7 +284,8 @@
 						});
 					cameraBox2 = new THREE.Mesh(sphereGeo, material);
 					cameraBox2.position.set(-5.1, dHeight+34.8, -3.4 );
-					scene.add(cameraBox2);
+					//scene.add(cameraBox2);
+					group.add(cameraBox2);
 					spheres.push(cameraBox2);
 
 				});
@@ -273,11 +296,12 @@
 				cameraBox = new THREE.Mesh( cubeGeo, cubeMat );
 				//cameraBox2 = new THREE.Mesh( sphereGeo, sphere );
 				cameraBox.position.set(-5.1, dHeight+34.8, -4 );
-				scene.add(cameraBox);
-				//scene.add(cameraBox2);
+				
+				//scene.add(cameraBox);
+				group.add(cameraBox);
 
 			}
-
+			scene.add(group);
 			//added buoys 
 			// shapes 15-20
 			let buoy1,buoy2,buoy3,buoy4,buoy5;
@@ -361,6 +385,7 @@
 				cameraBox2.position.z += varMove*2.5;
 			});
 			// moves the drone
+			/*
 			object1.forEach( ( root, ndx ) => {
 				root.position.x += varMove*allMoveX;
 				root.position.z += varMove*allMoveZ;
@@ -420,6 +445,37 @@
 
 			cameraBox.position.x += varMove*allMoveX;
 			cameraBox.position.z += varMove*allMoveZ;
+			*/
+			
+			if(firstPerson==false){
+					if(freeze==1){
+						controls.target.set(group.position.x, group.position.y, group.position.z);
+						camera.rotation.y=group.rotation.y;
+						controls.update();
+						//group.rotation.y=camera.rotation.y;
+					}
+				}
+				else{
+					controls = new FirstPersonControls(camera, renderer.domElement );
+					controls.movementSpeed = 100;
+					controls.lookSpeed = 0.05;
+				}
+
+			/*if(key[2]==true||key[3]==true){
+				group.position.x+=varMove*allMoveX;
+			}
+			if(key[0]==true||key[1]==true){
+				group.position.z+=varMove*allMoveZ;
+			}
+		
+			if(keyupRL==true){
+				if(group.rotation.z<0){
+					group.rotation.z+= .01;
+				}
+				else if(group.rotation.z>0){
+					group.rotation.z-= .01;
+				}
+			}*/
 
 			dHeight+=varMove;
 
@@ -428,46 +484,88 @@
 		let lClick=false;
 		let rClick=false;
 
+		let key=[];
+		key[0]=false;//w
+		key[1]=false;//s
+		key[2]=false;//a
+		key[3]=false;//d
+
 		function handleKeyDown(event) {
+			console.log(key);
 			if (event.keyCode === 87) { //"w"
+				allMoveZ=2.5;
+				key[0]=true;//w
 				startOn=1;
 			}
 			if (event.keyCode === 83) { //"s"
 				allMoveZ=-2.5;
+				key[1]=true;//s
 				startOn=1;
 			}
 			if (event.keyCode === 65) { //"a"
+				keyupRL=false;
+				if(group.rotation.z<.3){
+					group.rotation.z+= .09;
+				}
 				allMoveX=2.5;
+				key[2]=true;//a
 				rotateX=10;
 				startOn=1;
 				lClick=true;
 			}
 			if (event.keyCode === 68) { //"d"
+				keyupRL=false;
+				if(group.rotation.z>-.3){
+					group.rotation.z-= .09;
+				}
 				allMoveX=-2.5;
+				key[3]=true;//w
 				rotateX=-10;
 				startOn=1;
 				rClick=true;
 			}
 		}
-
+		//scene.add(control);
+		let keyupRL=false;
 		function handleKeyUp(event) {
 			if (event.keyCode === 87) { //"w"
+				//control.setMode( 'translate' );
 				startOn=0;
+				key[0]=false;//w
+
 			}
 			if (event.keyCode === 83) { //"s"
 				startOn=0;
+				key[1]=false;//s
 			}
 			if (event.keyCode === 65) { //"a"
+				keyupRL=true;
 				allMoveX=0;
 				startOn=0;
+				key[2]=false;//a
 				lClick=false;
 			}
 			if (event.keyCode === 68) { //"d"
 				allMoveX=0;
+				keyupRL=true;
+				key[3]=false;//d
 				startOn=0;
 				rClick=false;
 			}
 		}
+
+		//figured out an easier way to control the drone
+
+		let control = new FlyControls( group, renderer.domElement );
+		control.movementSpeed = 90;
+		//control.domElement = renderer.domElement;
+		control.rollSpeed = Math.PI /24;
+		control.autoForward = false;
+		control.dragToLook = true;
+		control.enabled=true;
+
+		control.minAzimuthAngle = 0;
+		control.maxAzimuthAngle = Math.PI;
 
 
 		function render() {
@@ -498,8 +596,8 @@
 			cameraBox.rotation.y += 0.01;
 			
 			if(firstPerson==false){
-				window.addEventListener('keydown', handleKeyDown, false);
-				window.addEventListener('keyup', handleKeyUp, false);
+				//window.addEventListener('keydown', handleKeyDown, false);
+				//window.addEventListener('keyup', handleKeyUp, false);
 			}
 			//animating moving the drone 
 			if(startOn==1){
@@ -538,9 +636,12 @@
 			renderer.render(scene, camera);
 			requestAnimationFrame(render);
 			
-			if(firstPerson==true){
+			/*if(firstPerson==true){
 				controls.update(clock.getDelta());
-			}
+			}*/
+
+			//controls.movementSpeed = 0.33;
+			control.update(clock.getDelta());
 
 		}
 		requestAnimationFrame(render);
