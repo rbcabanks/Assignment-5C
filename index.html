@@ -693,8 +693,11 @@
 			if(control.object.position.y<-42){
 				control.object.position.y=-41;
 				control.dispose();
+				if (confirm("You crashed into the water, press ok to start again.")) {
+					window.location.reload();
+				}
 			}
-			console.log(control.object.rotation.z);
+			//console.log(control.object.rotation.z);
 			if(control.object.rotation.z==0){
 				control.object.rotation.z=0;
 			}
