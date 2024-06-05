@@ -638,7 +638,6 @@
 		}
 
 		//figured out an easier way to control the drone
-
 		let control = new FlyControls(group, renderer.domElement );
 		control.movementSpeed = slider.value;
 		control.domElement = renderer.domElement;
@@ -685,9 +684,10 @@
 			// got this idea from this example https://github.com/mrdoob/three.js/blob/dev/examples/webgl_shaders_ocean.html
 			const time = performance.now() * 0.001;
 
-			//for a more lifelike drone
-
-			//group.position.y=Math.sin( time ) * 1;
+			//for a more lifelike drone, drone bobs when it is stationary
+			if(control.bobStart=true){
+				group.position.y=Math.sin( time ) * 1;
+			}
 			
 			//console.log(control.object.position.y);
 			if(control.object.position.y<-42){

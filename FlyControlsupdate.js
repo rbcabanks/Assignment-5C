@@ -12,6 +12,7 @@ class FlyControls extends EventDispatcher {
 
 		super();
 
+		let bobStart=false;
 		this.object = object;
 		this.domElement = domElement;
 
@@ -77,7 +78,7 @@ class FlyControls extends EventDispatcher {
 				case 'KeyE': this.moveState.rollRight = 1; break;
 
 			}
-
+			bobStart=false;
 			this.updateMovementVector();
 			this.updateRotationVector();
 
@@ -112,6 +113,7 @@ class FlyControls extends EventDispatcher {
 
 			}
 
+			bobStart=true;
 			this.updateMovementVector();
 			this.updateRotationVector();
 
