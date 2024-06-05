@@ -12,7 +12,29 @@
 		height: 100%;
 		margin: 0;
 	}
-	
+	.message{
+		position: absolute;
+		width:300px;
+		font-size: 25px;
+		background-color: #df0808;
+		padding:5px;
+		color: white;
+		display: block;
+		right: 30%;
+		top: 80%;
+    }
+	.endscreen{
+		position: absolute;
+		width:900px;
+		padding:5px;
+		height:300px;
+		font-size: 50px;
+		background-color: #df0808;
+		color: white;
+		display: block;
+		right: 20%;
+		top: 20%;
+    }
 	.button{
 		position: absolute;
 		font-size: 20px;
@@ -29,6 +51,17 @@
 	}
 	.button2{
 		right: 10%;
+	}
+	.button3{
+		right: 42%;
+		top: 30%;
+		background-color: #e2ff8b;
+		padding:0px;
+		font-size: 30px;
+		width:300px;
+		height:150px;
+		color: red;
+		display: none;
 	}
 	.button:active {
 		background-color: #3e8e41;
@@ -94,12 +127,18 @@
 		cursor: pointer;
 	}
 
+
 </style>
 
 <body> 
 	<button id="3rd" class="button button" > Follow Drone</button>
 	<!--<button id="1st" class="button button1" >1st Person View</button>-->
 	<button id="2nd" class="button button1" >Fly Alone</button>
+	<button id="end" class="button button3" >Start Over</button>
+	<div class="message" id="myPopup" style="display:none">PROXIMITY ALERT! You're too close to the water</div>
+	<div class="endscreen" id="endscreen" style="display:none">YOU CRASHED! Click to fly again</div>
+
+	
 	<div class="slidecontainer">
 		<h1>Speed:</h1>
 		<input type="range" min="10" max="100" value="10" class="slider" id="speed"></div>
@@ -146,6 +185,8 @@
 		document.getElementById('3rd').onclick = function () {freeze=1;};
 		//document.getElementById('1st').onclick = function () {firstPerson=true;};
 		document.getElementById('2nd').onclick = function () {freeze=-1;};
+		document.getElementById('end').onclick = function () {window.location.reload();};
+
 		var slider = document.getElementById("speed");
 
 
@@ -440,129 +481,6 @@
 		var allMoveY=0;
 		var allMoveZ=2.5;
 		var rotateX=0;
-
-
-		function animationOfDrone(varMove){
-
-			// the only way I could get this to work -> to move the camera
-			//let varMove= -.1;
-			spheres.forEach( ( cameraBox2, ndx ) => {
-				cameraBox2.rotation.y += 0.01;
-				cameraBox2.position.x += varMove;
-				cameraBox2.position.z += varMove*2.5;
-			});
-			// moves the drone
-			/*
-			object1.forEach( ( root, ndx ) => {
-				root.position.x += varMove*allMoveX;
-				root.position.z += varMove*allMoveZ;
-				
-				
-				if(firstPerson==false){
-					if(freeze==1){
-						controls.target.set(root.position.x, root.position.y, root.position.z);
-						controls.update();
-					}
-				}
-				else{
-					controls = new FirstPersonControls(camera, renderer.domElement );
-					controls.movementSpeed = 100;
-					controls.lookSpeed = 0.05;
-				}
-			});
-
-			//waterGeometry.translate(0,0,varMove/2.5);
-			//waterGeometry.translate(0,-3*varMove,varMove/3);
-
-			cube.position.x += varMove*allMoveX;
-			cube.position.z += varMove*allMoveZ;
-
-			cube1.position.x += varMove*allMoveX;
-			cube1.position.z += varMove*allMoveZ;
-
-			cube2.position.x += varMove*allMoveX;
-			cube2.position.z += varMove*allMoveZ;
-
-			cube3.position.x += varMove*allMoveX;
-			cube3.position.z += varMove*allMoveZ;
-
-			cube4.position.x += varMove*allMoveX;			
-			cube4.position.z += varMove*allMoveZ;
-
-			cube5.position.x += varMove*allMoveX;
-			cube5.position.z += varMove*allMoveZ;
-
-			cube6.position.x += varMove*allMoveX;
-			cube6.position.z += varMove*allMoveZ;
-
-			cube7.position.x += varMove*allMoveX;
-			cube7.position.z += varMove*allMoveZ;
-
-			cube8.position.x += varMove*allMoveX;			
-			cube8.position.z += varMove*allMoveZ;
-
-			cube9.position.x += varMove*allMoveX;			
-			cube9.position.z += varMove*allMoveZ;
-
-			cube10.position.x += varMove*allMoveX;
-			cube10.position.z += varMove*allMoveZ;
-
-			cube11.position.x += varMove*allMoveX;
-			cube11.position.z += varMove*allMoveZ;
-
-			cameraBox.position.x += varMove*allMoveX;
-			cameraBox.position.z += varMove*allMoveZ;
-			*/
-			
-			/*if(controls.object.position.y<=2){
-				console.log(controls.object.position.y);
-				controls.object.position.y==1;
-				//control.moveState.pitchDown = 0;
-				//control.moveState.down = 0;
-			}*/
-
-			control.movementSpeed = slider.value;
-			//console.log(freeze);
-			
-			if(freeze==1){
-				controls.target.set(group.position.x, group.position.y, group.position.z);
-				camera.rotation.y=group.rotation.y;
-				controls.update();
-			}
-
-			/*if(firstPerson==false){
-					if(freeze==1){
-						controls.target.set(group.position.x, group.position.y, group.position.z);
-						camera.rotation.y=group.rotation.y;
-						controls.update();
-						//group.rotation.y=camera.rotation.y;
-					}
-				}
-				else{
-					controls = new FirstPersonControls(camera, renderer.domElement );
-					controls.movementSpeed = 100;
-					controls.lookSpeed = 0.05;
-				}
-			*/
-			/*if(key[2]==true||key[3]==true){
-				group.position.x+=varMove*allMoveX;
-			}
-			if(key[0]==true||key[1]==true){
-				group.position.z+=varMove*allMoveZ;
-			}
-		
-			if(keyupRL==true){
-				if(group.rotation.z<0){
-					group.rotation.z+= .01;
-				}
-				else if(group.rotation.z>0){
-					group.rotation.z-= .01;
-				}
-			}*/
-
-			//dHeight+=varMove;
-
-		}
 		let startOn=0;
 		let lClick=false;
 		let rClick=false;
@@ -673,29 +591,55 @@
 			cube10.rotation.y += 0.4;
 			cube11.rotation.y += 0.4;
 			cameraBox.rotation.y += 0.01;
-						
-			//animating moving the drone 
-			if(startOn==1){
-				animationOfDrone(-1);
+					
+			
+			let varMove=1;
+			//previously animation of drone
+			spheres.forEach( ( cameraBox2, ndx ) => {
+				cameraBox2.rotation.y += 0.01;
+				cameraBox2.position.x += varMove;
+				cameraBox2.position.z += varMove*2.5;
+			});
+
+			control.movementSpeed = slider.value;
+			
+			if(freeze==1){
+				// ensuring we can't see underwater
+				if(control.object.position.y<0){
+					controls.target.set(group.position.x, 0, group.position.z);
+				}
+				else{
+					controls.target.set(group.position.x, group.position.y, group.position.z);
+				}
+				camera.rotation.y=group.rotation.y;
+				controls.update();
 			}
-			if(startOn==0){
-				animationOfDrone(0);
-			}
+
+
 			// got this idea from this example https://github.com/mrdoob/three.js/blob/dev/examples/webgl_shaders_ocean.html
 			const time = performance.now() * 0.001;
 
 			//for a more lifelike drone, drone bobs when it is stationary
-			if(control.bobStart=true){
+			/*if(control.bobStart=true){
 				group.position.y=Math.sin( time ) * 1;
-			}
+			}*/
 			
-			//console.log(control.object.position.y);
+			// proximity alert:
+			if(control.object.position.y<-37){
+				document.getElementById('myPopup').style.display = 'block';
+			}
+			else{
+				document.getElementById('myPopup').style.display = 'none';
+			}
+
 			if(control.object.position.y<-42){
 				control.object.position.y=-41;
 				control.dispose();
-				if (confirm("You crashed into the water, press ok to start again.")) {
-					window.location.reload();
-				}
+				document.getElementById('endscreen').style.display = 'block';
+				document.getElementById('end').style.display = 'block';
+				
+					//window.location.reload();
+				
 			}
 			//console.log(control.object.rotation.z);
 			if(control.object.rotation.z==0){
