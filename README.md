@@ -13,4 +13,5 @@ Features:
 10. Left and right arrows adjusts yaw (left and right rotation over y axis)
 11. Adjust speed using slider
 
+Uses different lighting, animation, shaders, and user input. 
 https://rbcabanks.github.io/Assignment-5C/
