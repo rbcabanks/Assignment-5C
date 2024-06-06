@@ -141,7 +141,7 @@
 	
 	<div class="slidecontainer">
 		<h1>Speed:</h1>
-		<input type="range" min="50" max="200" value="50" class="slider" id="speed"></div>
+		<input type="range" min="50" max="200" value="50" class="slider" id="speed" onkeydown="event.preventDefault()"></div>
 	<h2>
 		<ul>
 			<li>WASD move</li>
@@ -489,9 +489,9 @@
 			const light2 = new THREE.DirectionalLight(0x008080, 2);
 
 			//light 2
-			const alight = new THREE.AmbientLight(0x101647, .01);
+			const alight = new THREE.AmbientLight(0x101647, .00001);
 			//light 3
-			const hlight = new THREE.HemisphereLight(0xB1E1FF, 0x101647, .01);
+			const hlight = new THREE.HemisphereLight(0xB1E1FF, 0x101647, .00001);
 			
 			scene.add(alight);
 			scene.add(light2);
@@ -502,6 +502,7 @@
 			light.target.position.set(-5, 4, 10);
 			scene.add(light);
 			scene.add(light.target);
+			
 		}
 
 		function resizeRendererToDisplaySize(renderer) {
