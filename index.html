@@ -141,7 +141,7 @@
 	
 	<div class="slidecontainer">
 		<h1>Speed:</h1>
-		<input type="range" min="10" max="100" value="10" class="slider" id="speed"></div>
+		<input type="range" min="50" max="200" value="50" class="slider" id="speed"></div>
 	<h2>
 		<ul>
 			<li>WASD move</li>
@@ -170,7 +170,6 @@
 	import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 	import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
 	import { FirstPersonControls } from 'three/addons/controls/FirstPersonControls.js';
-	//import { TransformControls } from 'three/addons/controls/TransformControls.js';
 	import { FlyControls } from './FlyControlsupdate.js';
 
 
@@ -214,7 +213,6 @@
 		controls=new OrbitControls(camera, canvas);
 		controls.target.set(-5, 55, 60);
 		// got help with formatting the camera above the water from this example"https://github.com/mrdoob/three.js/blob/dev/examples/webgl_shaders_ocean.html" 
-		//controls.maxPolarAngle = Math.PI * 0.495;
 		controls.maxPolarAngle = Math.PI * 0.495;
 		controls.maxDistance = 150;
 		controls.update();
@@ -230,34 +228,36 @@
 		const clock = new THREE.Clock();
 
 		const scene = new THREE.Scene();
-		const waterGeometry = new THREE.PlaneGeometry(16000, 16000);
+		const waterGeometry = new THREE.PlaneGeometry(30000, 30000);
 		let water;
-		scene.fog = new THREE.FogExp2( 0x062645, 0.0006 );
+		scene.fog = new THREE.FogExp2( 0x164e91, 0.0005, 10000 );
 		//had to tweak it to be how I wanted, but got a lot of help from this source code https://threejs.org/examples/webgl_shaders_ocean.html
 		water = new Water(
 			waterGeometry,
 			{
 				position:0,
-				textureWidth: 16000,
-				textureHeight: 16000,
+				textureWidth: 512,
+				textureHeight: 512,
 				waterNormals: new THREE.TextureLoader().load('waternormals.jpg', function (texture) {
 
 					texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
 
 				}),
 				//sunDirection: new THREE.Vector3(),
-				sunColor: 0x8B6700,
-				waterColor: 0x001861,
-				distortionScale: 3.7,
+				sunColor: 0x003074,
+				waterColor: 0x062645,
+				distortionScale: 40,
 				fog: scene.fog !== undefined
 			}
 		);
 
+		//water.rotation.z=0;
 		water.rotation.x = - Math.PI / 2;
-		//water.position.y=0;
 		scene.add(water);
 
-		//loading in a 3d scenery (specificaly a sky box)
+
+
+		//loading in a 3d scenery (specifically a sky box)
 		{
 			const loader = new THREE.CubeTextureLoader();
 			const texture = loader.load([
@@ -273,15 +273,58 @@
 				//sourced from https://www.utah3d.net/utah-travel/utah-waterways/starry-lake.html
 			]);
 			scene.background = texture;
+			//texture.flipY=true;
+			//const material = new THREE.MeshBasicMaterial( { color: 0xffffff, envMap: texture ,side: THREE.BackSide} );
+
+			//const cubeGeo = new THREE.BoxGeometry( 20000, 20000, 20000 );
+			
+			//let skycube = new THREE.Mesh( cubeGeo, material );
+			//scene.add(skycube);
+			//scene.fog = new THREE.Fog(texture, 0.25, 4);
 		}
 
+		//adding boats
+		const boats=[];
+		{// drone obj and mtl. Got from this source https://www.cgtrader.com/items/2480872/download-page
+			const mtlLoader = new MTLLoader();
+			mtlLoader.load('./Marlow66/Marlow66.mtl', (mtl) => {
+				mtl.preload();
+				const objLoader = new OBJLoader();
+				objLoader.setMaterials(mtl);
+				objLoader.load('./Marlow66/Marlow66.obj', (root) => {
+					root.position.y = dHeight;
+					root.position.x = -3000;
+					root.position.z = -1000;
+					root.scale.set(10, 10, 10);
+					//root.rotation.y=(-.6);
+					scene.add(root);
+					boats.push(root);
+				});
+				objLoader.load('./Marlow66/Marlow66.obj', (root) => {
+					root.position.y = dHeight;
+					root.position.x = 1000;
+					root.position.z = 2000;
+					root.scale.set(10, 10, 10);
+					root.rotation.y=(45);
+					scene.add(root);
+					boats.push(root);
+				});
+
+				objLoader.load('./Marlow66/Marlow66.obj', (root) => {
+					root.position.y = dHeight;
+					root.position.x = 2000;
+					root.position.z = -6000;
+					root.scale.set(10, 10, 10);
+					root.rotation.y=(90);
+					scene.add(root);
+					boats.push(root);
+				});
+			});
+		}
 
 
 		// Create the group -> got idea from this article https://medium.com/@gianluca.lomarco/three-js-object-transforms-74bf439e9e38
 		const group = new THREE.Group();
-
-		/*let control = new TransformControls( camera, renderer.domElement );
-		control.addEventListener( 'change', render );*/
 
 		const object1=[];
 		{// drone obj and mtl. Got from this source https://www.cgtrader.com/items/2480872/download-page
@@ -440,10 +483,10 @@
 		{
 
 			const color = 0xffeca1;
-			const intensity = 3;
+			const intensity = 2;
 			//light 1
 			const light = new THREE.DirectionalLight(color, intensity);
-			const light2 = new THREE.DirectionalLight(0x008080, 3);
+			const light2 = new THREE.DirectionalLight(0x008080, 2);
 
 			//light 2
 			const alight = new THREE.AmbientLight(0x101647, .01);
@@ -459,7 +502,6 @@
 			light.target.position.set(-5, 4, 10);
 			scene.add(light);
 			scene.add(light.target);
-
 		}
 
 		function resizeRendererToDisplaySize(renderer) {
@@ -485,75 +527,6 @@
 		let lClick=false;
 		let rClick=false;
 
-		let key=[];
-		key[0]=false;//w
-		key[1]=false;//s
-		key[2]=false;//a
-		key[3]=false;//d
-
-		function handleKeyDown(event) {
-			console.log(key);
-			if (event.keyCode === 87) { //"w"
-				allMoveZ=2.5;
-				key[0]=true;//w
-				startOn=1;
-			}
-			if (event.keyCode === 83) { //"s"
-				allMoveZ=-2.5;
-				key[1]=true;//s
-				startOn=1;
-			}
-			if (event.keyCode === 65) { //"a"
-				keyupRL=false;
-				if(group.rotation.z<.3){
-					group.rotation.z+= .09;
-				}
-				allMoveX=2.5;
-				key[2]=true;//a
-				rotateX=10;
-				startOn=1;
-				lClick=true;
-			}
-			if (event.keyCode === 68) { //"d"
-				keyupRL=false;
-				if(group.rotation.z>-.3){
-					group.rotation.z-= .09;
-				}
-				allMoveX=-2.5;
-				key[3]=true;//w
-				rotateX=-10;
-				startOn=1;
-				rClick=true;
-			}
-		}
-		//scene.add(control);
-		let keyupRL=false;
-		function handleKeyUp(event) {
-			if (event.keyCode === 87) { //"w"
-				//control.setMode( 'translate' );
-				startOn=0;
-				key[0]=false;//w
-
-			}
-			if (event.keyCode === 83) { //"s"
-				startOn=0;
-				key[1]=false;//s
-			}
-			if (event.keyCode === 65) { //"a"
-				keyupRL=true;
-				allMoveX=0;
-				startOn=0;
-				key[2]=false;//a
-				lClick=false;
-			}
-			if (event.keyCode === 68) { //"d"
-				allMoveX=0;
-				keyupRL=true;
-				key[3]=false;//d
-				startOn=0;
-				rClick=false;
-			}
-		}
 
 		//figured out an easier way to control the drone
 		let control = new FlyControls(group, renderer.domElement );
@@ -575,7 +548,7 @@
 
 			}
 			//makes water move.. got help from this example https://github.com/mrdoob/three.js/blob/dev/examples/webgl_shaders_ocean.html
-			water.material.uniforms[ 'time' ].value += 1.0 / 60.0;
+			water.material.uniforms[ 'time' ].value += 1.0 / 160.0;
 
 			//propeller animations (to spin)
 			cube.rotation.y += 0.4;
@@ -605,6 +578,9 @@
 			
 			if(freeze==1){
 				// ensuring we can't see underwater
+				water.position.x=group.position.x;
+				water.position.z=group.position.z;
+
 				if(control.object.position.y<0){
 					controls.target.set(group.position.x, 0, group.position.z);
 				}
@@ -652,6 +628,10 @@
 				control.object.rotation.z=.5;
 			}
 
+
+			boats.forEach( (boat, ndx ) => {
+				boat.position.y=Math.sin( time ) * 1;
+			});
 
 			buoy1.position.y = Math.sin( time ) * 2;
 			buoy1.rotation.x = time * 0.5;
