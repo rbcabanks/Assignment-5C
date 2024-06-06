@@ -2,7 +2,7 @@ Drone Flight Simulator
 
 Features:
 1. Solo flight or third person flight
-2. Flight over a serene lake view
+2. Fly over a serene lake. Fly by all the boats and buoys!
 3. Adjustable speed
 4. Water proximity indicator
 5. Water crash ends simulation
